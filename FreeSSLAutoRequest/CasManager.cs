@@ -33,22 +33,23 @@ namespace FreeSSLAutoRequest
             return new AlibabaCloud.SDK.Cas20200407.Client(config);
         }
 
-        public static void CheckAllCerts(AlibabaCloud.SDK.Cas20200407.Client client)
+        public static DateTime GetCertExpiredTime(AlibabaCloud.SDK.Cas20200407.Client client, long certId)
         {
-            // 这里从配置文件中读取证书列表，获得所有订阅的证书对应 CertId，然后再创建这个请求（一次性发？先不管了）
+            DateTime expiredTime = DateTime.MinValue;
             // 构造请求对象
             AlibabaCloud.SDK.Cas20200407.Models.GetUserCertificateDetailRequest getUserCertificateDetailRequest = new AlibabaCloud.SDK.Cas20200407.Models.
                 GetUserCertificateDetailRequest
             {
-                //CertId = ,
-                CertFilter = false
+                CertId = certId,
+                CertFilter = true
             };
             // 构造运行时参数
             AlibabaCloud.TeaUtil.Models.RuntimeOptions runtime = new AlibabaCloud.TeaUtil.Models.RuntimeOptions();
             try
             {
-                // 获取相应对象
-                AlibabaCloud.SDK.Cas20200407.Models.GetUserCertificateDetailResponse getUserCertificateDetailResponse = client.GetUserCertificateDetailWithOptions(getUserCertificateDetailRequest, runtime);
+                // 获取响应对象
+                AlibabaCloud.SDK.Cas20200407.Models.GetUserCertificateDetailResponseBody body = client.GetUserCertificateDetailWithOptions(getUserCertificateDetailRequest, runtime).Body;
+                expiredTime = DateTime.Parse(body.EndDate);
             }
             catch (TeaException error)
             {
@@ -72,6 +73,7 @@ namespace FreeSSLAutoRequest
                 Console.WriteLine(error.Data["Recommend"]);
                 AlibabaCloud.TeaUtil.Common.AssertAsString(error.Message);
             }
+            return expiredTime;
         }
     }
 }
